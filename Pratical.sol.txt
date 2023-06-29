@@ -1,0 +1,56 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+
+contract IdentityNFT is ERC721 {
+     struct Identity {
+        string firstName;
+        string lastName;
+        uint256 dateOfBirth;
+        string uniqueInformation;
+        address verifier;
+    }
+
+    mapping(uint256 => Identity) public identities;
+    uint256 private nextTokenId;
+
+    constructor( string memory _name, string memory _symbol) ERC721(_name, _symbol) {
+       nextTokenId = 1;
+    }
+
+    function createIdentity(
+       string memory _firstName,
+       string memory _lastName,
+       uint256 _dateOfBirth,
+       string memory _uniqueInformation
+    ) external {
+         uint256 token = nextTokenId;
+         _safeMint(msg.sender, tokenId);
+         identities[tokenId] = Identity(_firstName, _lastName, _dateOfBirth, _uniqueInformation, address(0));
+         nextTokenId++;
+    }
+ 
+    function verifyIdentity(uint256 _tokenId) external {
+        require(_exists(_tokenId), "Token does not exist");
+        require(ownerOf(_tokenId) != msg.sender, "Cannot verify own identity");
+    }
+    
+    function getIdentity(uint256 _tokenId) external view returns (
+        string memory firstName,
+        string memory lastName,
+        uint256 dateOfBirth,
+        string memory uniqueInformation,
+        address verifier
+    ) {
+       require(_exists(_tokenId), "Token does not exist");
+       Identity memory identity = identities[_tokenId];
+       return (
+          identity.firstName,
+          identity.lastName,
+          identity.dateOfBirth,
+          identity.uniqueInformation,
+          identity.verifier
+       );
+     }
+ }
